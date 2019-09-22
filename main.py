@@ -42,6 +42,11 @@ def search_for_interesting_apartments(response):
 
 
 def compare_with_old_ads(current_ids):
+    """
+    Compare new ad IDs with stored IDs. If new IDs, write them to storage file
+    :param current_ids: list with IDs from web scraping
+    :return: Boolean, True if any new IDs, False if not
+    """
     new_ids = []
     with open(os.path.join(sys.path[0], "ad_id.txt"), "r") as storage:
         old_ids = storage.readlines()
