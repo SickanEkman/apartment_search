@@ -4,6 +4,9 @@ import ssl
 import secrets
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+import os
+import sys
+import re
 
 """
 Instructions and inspiration:
@@ -26,27 +29,44 @@ def search_for_interesting_apartments(response):
     """
     Check for keywords
     :param response: request object with response
-    :return: list of interesting apartments
+    :return: list of interesting apartment ids
     """
     apartment_as_list = response.content.decode().split('AnnonsId')
     hits = []
     for apartment in apartment_as_list:
         if '"Stadsdel":"Södermalm"' in apartment and '"Vanlig":true' in apartment:
-            hits.append(apartment)
+            match = re.search(r':\d+(?=,"Stadsdel")', apartment)
+            ad_id = match.group(0).strip(':')
+            hits.append(ad_id + '\n')
     return hits
+
+
+def compare_with_old_ads(current_ids):
+    new_ids = []
+    with open(os.path.join(sys.path[0], "ad_id.txt"), "r") as storage:
+        old_ids = storage.readlines()
+        for current_id in current_ids:
+            if current_id not in old_ids:
+                new_ids.append(current_id)
+    if new_ids:
+        with open(os.path.join(sys.path[0], "ad_id.txt"), "a") as write_file:
+            write_file.writelines(new_id for new_id in new_ids)
+        return True
+    else:
+        return False
 
 
 def create_message(hits):
     """
     Create message body for email, one if interesting apartments and another if there aren't.
-    :param hits: list of interesting apartments (may be empty)
+    :param hits: Boolean, True or False
     :return: Messages for email, one html and one plain text.
     """
     if hits:
         html_text = """\
     <html>
       <body>
-        <p style="color:Green;">Hi!<br><br>
+        <p style="color:Green;">Hej!<br><br>
            <b>Lagenhet pa Sodermalm ligger ute nu!</b><br> 
            <a href="https://bostad.stockholm.se/Lista/?s=59.30801&n=59.31821&w=18.07139&e=18.09762&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%5D">Link to Bostadsformedlingen</a> <br><br>
            <i>-- Email sent from my Python app</i>
@@ -62,7 +82,7 @@ def create_message(hits):
         html_text = """\
     <html>
       <body>
-        <p style="color:Red;">Hi!<br><br>
+        <p style="color:Red;">Hej!<br><br>
            Inga intressanta lagenheter idag. <br><br>
            <i>-- Email sent from my Python app</i>
         </p>
@@ -107,5 +127,6 @@ if __name__ == "__main__":
     to_email = secrets.to_gmail
     apartments = request_apartments(apartment_url)
     hit_list = search_for_interesting_apartments(apartments)
-    html_message, plain_message = create_message(hit_list)
+    hit = compare_with_old_ads(hit_list)
+    html_message, plain_message = create_message(hit)
     send_mail(from_email, to_email, html_message, plain_message)
