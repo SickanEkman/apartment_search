@@ -6,4 +6,4 @@ Setup after cloning project:
 >* from_gmail = from.email.adress@mail.com
 >* to_gmail = to.email.adress@mail.com
 >* gmail_app_password = google.it.if.you.dont.know.what.it.is
-* Set up cronjob once a day, example: 0 12 * * * python3 full/path/to/main.py
+* Set up cronjob, ```crontab -e```, once a day, example: 0 12 * * * python3 full/path/to/main.py
