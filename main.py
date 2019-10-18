@@ -34,10 +34,11 @@ def search_for_interesting_apartments(response):
     apartment_as_list = response.content.decode().split('AnnonsId')
     hits = []
     for apartment in apartment_as_list:
-        if '"Stadsdel":"Södermalm"' in apartment and '"Vanlig":true' in apartment:
-            match = re.search(r':\d+(?=,"Stadsdel")', apartment)
-            ad_id = match.group(0).strip(':')
-            hits.append(ad_id + '\n')
+        if '"Vanlig":true' in apartment:
+            if '"Stadsdel":"Södermalm"' in apartment or '"Stadsdel":"Reimersholme"' in apartment or '"Stadsdel":"Långholmen"' in apartment:
+                match = re.search(r':\d+(?=,"Stadsdel")', apartment)
+                ad_id = match.group(0).strip(':')
+                hits.append(ad_id + '\n')
     return hits
 
 
@@ -73,14 +74,14 @@ def create_message(hits):
       <body>
         <p style="color:Green;">Hej!<br><br>
            <b>Lagenhet pa Sodermalm ligger ute nu!</b><br> 
-           <a href="https://bostad.stockholm.se/Lista/?s=59.30801&n=59.31821&w=18.07139&e=18.09762&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%5D">Link to Bostadsformedlingen</a> <br><br>
+           <a href="https://bostad.stockholm.se/Lista/?s=59.30796&n=59.32623&w=18.02393&e=18.07637&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%2C%7B%22value%22%3A%22Stadsdel-71%22%2C%22name%22%3A%22Stockholm%20-%20Reimersholme%22%7D%2C%7B%22value%22%3A%22Stadsdel-58%22%2C%22name%22%3A%22Stockholm%20-%20L%C3%A5ngholmen%22%7D%5D">Link to Bostadsformedlingen</a> <br><br>
            <i>-- Email sent from my Python app</i>
         </p>
       </body>
     </html>
     """
         plain_text = "Lagenhet ligger ute!\n" \
-                     "https://bostad.stockholm.se/Lista/?s=59.30801&n=59.31821&w=18.07139&e=18.09762&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%5D\n" \
+                     "https://bostad.stockholm.se/Lista/?s=59.30796&n=59.32623&w=18.02393&e=18.07637&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%2C%7B%22value%22%3A%22Stadsdel-71%22%2C%22name%22%3A%22Stockholm%20-%20Reimersholme%22%7D%2C%7B%22value%22%3A%22Stadsdel-58%22%2C%22name%22%3A%22Stockholm%20-%20L%C3%A5ngholmen%22%7D%5D\n\n" \
                      "-- Email sent from my Python app"
         return html_text, plain_text
     else:
@@ -89,12 +90,14 @@ def create_message(hits):
       <body>
         <p style="color:Red;">Hej!<br><br>
            Inga intressanta lagenheter idag. <br><br>
+           <a href="https://bostad.stockholm.se/Lista/?s=59.30796&n=59.32623&w=18.02393&e=18.07637&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%2C%7B%22value%22%3A%22Stadsdel-71%22%2C%22name%22%3A%22Stockholm%20-%20Reimersholme%22%7D%2C%7B%22value%22%3A%22Stadsdel-58%22%2C%22name%22%3A%22Stockholm%20-%20L%C3%A5ngholmen%22%7D%5D">Link to Bostadsformedlingen</a> <br><br>
            <i>-- Email sent from my Python app</i>
         </p>
       </body>
     </html>
     """
         plain_text = "Ingen intressant lagenhet idag.\n" \
+                     "https://bostad.stockholm.se/Lista/?s=59.30796&n=59.32623&w=18.02393&e=18.07637&sort=annonserad-fran-desc&vanlig=1&omrade=%5B%7B%22value%22%3A%22Stadsdel-92%22%2C%22name%22%3A%22Stockholm%20-%20S%C3%B6dermalm%22%7D%2C%7B%22value%22%3A%22Stadsdel-71%22%2C%22name%22%3A%22Stockholm%20-%20Reimersholme%22%7D%2C%7B%22value%22%3A%22Stadsdel-58%22%2C%22name%22%3A%22Stockholm%20-%20L%C3%A5ngholmen%22%7D%5D\n" \
                      "-- Email sent from my Python app"
         return html_text, plain_text
 
@@ -135,3 +138,4 @@ if __name__ == "__main__":
     hit = compare_with_old_ads(hit_list)
     html_message, plain_message = create_message(hit)
     send_mail(from_email, to_email, html_message, plain_message)
+    
